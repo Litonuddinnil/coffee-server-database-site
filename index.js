@@ -82,10 +82,56 @@ async function run() {
     });
 
     //User related apis
+    app.get('/users',async(req,res)=>{
+      const cursor = userCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+    app.get('/users/:email', async(req,res)=>{
+      const email = req.params.email;
+      const query = {email:email};
+      const result = await userCollection.findOne(query);
+      res.send(result);
+    })
     app.post('/users', async(req,res)=>{
       const newUser = req.body;
       console.log('create a new user',newUser);
       const result = await userCollection.insertOne(newUser);
+      res.send(result);
+    })
+    app.put('/users/:email',async(req,res)=>{
+      const email = req.params.email;
+      const filter = {email:email};
+      const options = { upsert: true };
+      const updateUser = req.body;
+      const user ={
+        $set:{
+          name:updateUser.name,
+          photo:updateUser.photo,
+          email:updateUser.email, 
+        }
+      }
+      const result = await  userCollection.updateOne(filter,user,options);
+      res.send(result);
+    })
+     
+    app.delete('/users/:email',async(req,res)=>{
+      const email = req.params.email;
+      const query = {email: email};
+      const result = await userCollection.deleteOne(query);
+      res.send(result); 
+    });
+
+    //singIn method patch
+    app.patch('/users', async(req,res)=>{
+      const email = req.body.email;
+      const query = {email};
+      const updateDoc = {
+        $set:{
+          lastSignInTime:req.body?.lastSignInTime
+        }
+      }
+      const result = await userCollection.updateOne(query,updateDoc);
       res.send(result);
     })
   
